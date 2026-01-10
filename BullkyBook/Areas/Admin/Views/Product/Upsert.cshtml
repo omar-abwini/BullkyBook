@@ -67,8 +67,9 @@
                             <span asp-validation-for="Product.CategoryId" class="text-danger"></span>
                         </div>
                         <div class="mb-3">
-                            @* <label asp-for="Product.ImageUrl"></label> *@
-                            <input type="file" name="file" class="form-control" />
+                            <input type="file" name="files" class="form-control" multiple />
+                            <label asp-for="Product.ProductImages"></label>
+
                         </div>
 
                         <div class="row">
@@ -94,9 +95,9 @@
                     </div>
                 </div>
                 <div class="col-2">
-                    @* <img src="@Model.Product.ImageUrl" width="100%"  *@
+                   @*  <img src="@Model.Product.ImageUrl" width="100%" 
                          style="border-radius:5px; border:1px solid #bbb9b9"/>
-
+ *@
                 </div>
             </div>
             

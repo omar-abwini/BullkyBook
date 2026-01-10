@@ -61,18 +61,59 @@ namespace BullkyBook.Areas.Admin.Controllers
         }
         [HttpPost]
         [Authorize(Roles = SD.Role_Admin)]
-        public IActionResult Upsert(ProductVM productVM, IFormFile? file)
+        public IActionResult Upsert(ProductVM productVM, List<IFormFile>? files)
         {
             if (ModelState.IsValid)
             {
+
+                if (productVM.Product.Id == 0)
+                {
+                    _unitOfWork.Porduct.Add(productVM.Product);
+                }
+                else
+                {
+                    _unitOfWork.Porduct.Update(productVM.Product);
+                }
+
+                _unitOfWork.Save();
+
                 //this is what gives the wwwRoot folder path.
                 string wwwRootPath = _webHostEnvironment.WebRootPath;
-                if (file != null)
+                if (files != null)
                 {
-                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-                    string productPath = Path.Combine(wwwRootPath, @"images/product");
 
-                    //if ther's already an image:
+                    foreach (IFormFile file in files)
+                    {
+                        string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                        string productPath = @"images\products\product-" + productVM.Product.Id;
+                        string finalPath = Path.Combine(wwwRootPath, productPath);
+
+                        if(!Directory.Exists(finalPath))
+                            Directory.CreateDirectory(finalPath);
+
+                        using (var fileStream = new FileStream(Path.Combine(finalPath, fileName), FileMode.Create))
+                        {
+                            file.CopyTo(fileStream);
+                        }
+
+                        ProductImage productImage = new()
+                        {
+                            ImageUrl=@"\"+productPath+@"\"+fileName,
+                            ProductId=productVM.Product.Id,
+                        };
+
+                        if(productVM.Product.ProductImages == null)
+                            productVM.Product.ProductImages = new List<ProductImage>();
+
+                        productVM.Product.ProductImages.Add(productImage);
+
+                    }
+                    _unitOfWork.Porduct.Update(productVM.Product);
+                    _unitOfWork.Save();
+
+
+                    //IF ther's already an image:
+
                     //if (!string.IsNullOrEmpty(productVM.Product.ImageUrl))
                     //{
                     //    //delete the old image
@@ -88,18 +129,10 @@ namespace BullkyBook.Areas.Admin.Controllers
                     //{
                     //    file.CopyTo(fileStream);
                     //}
-                   // productVM.Product.ImageUrl = @"\images\product\" + fileName;
+                    // productVM.Product.ImageUrl = @"\images\product\" + fileName;
                 }
-                if (productVM.Product.Id == 0) {
-                    _unitOfWork.Porduct.Add(productVM.Product);
-                }
-                else
-                {
-                    _unitOfWork.Porduct.Update(productVM.Product);
-                }
-                
-                _unitOfWork.Save();
-                TempData["Success"] = "product Created Successfully";
+
+                TempData["Success"] = "product Created/Updated Successfully";
                 return RedirectToAction("Index");
             }
             //THE ELSE PART IS DONE TO REPOPULATE THE LIST
