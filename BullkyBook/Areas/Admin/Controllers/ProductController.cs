@@ -218,12 +218,24 @@ namespace BullkyBook.Areas.Admin.Controllers
                 return Json(new { Success = false, message = "Error while deleting" });
 
             }
-            //var oldImagePath =
-            //        Path.Combine(_webHostEnvironment.WebRootPath, productTobeDeleted.ImageUrl.TrimStart('\\'));
-            //if (System.IO.File.Exists(oldImagePath))
-            //{
-            //    System.IO.File.Delete(oldImagePath);
-            //}
+            
+
+            string productPath = @"images\products\product-" + id;
+            string finalPath = Path.Combine(_webHostEnvironment.WebRootPath, productPath);
+
+            if (Directory.Exists(finalPath)) {
+
+                string[] filePaths =Directory.GetFiles(finalPath);
+                foreach (string filePath in filePaths)
+                {
+                    System.IO.File.Delete(filePath);
+                }
+
+                Directory.Delete(finalPath); 
+            }
+
+                
+
             _unitOfWork.Porduct.Remove(productTobeDeleted);
             _unitOfWork.Save();
             return Json(new { Success = true, message = "Deleted successfully" });
